@@ -7,6 +7,8 @@ import Layout from "./components/Layout";
 import Create from "./pages/Create";
 import Gallery from "./pages/Gallery";
 import Brand from "./pages/Brand";
+import Templates from "./pages/Templates";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,9 +20,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<Auth />} />
           <Route element={<Layout />}>
             <Route path="/" element={<Create />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/templates" element={<Templates />} />
             <Route path="/brand" element={<Brand />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

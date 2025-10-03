@@ -2,21 +2,64 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Create = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [hasBrandProfile, setHasBrandProfile] = useState(false);
+  const [inspirationImage, setInspirationImage] = useState<File | null>(null);
+  const [inspirationPreview, setInspirationPreview] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
+    checkAuth();
     const saved = localStorage.getItem("markmate_brand");
     setHasBrandProfile(!!saved && JSON.parse(saved).name);
   }, []);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate("/auth");
+      return;
+    }
+    setUser(session.user);
+
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+
+    setProfile(profileData);
+  };
+
+  const handleInspirationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setInspirationImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setInspirationPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeInspirationImage = () => {
+    setInspirationImage(null);
+    setInspirationPreview(null);
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -37,16 +80,45 @@ const Create = () => {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to generate content",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     setGeneratedImage(null);
 
     try {
       const brandProfile = JSON.parse(localStorage.getItem("markmate_brand") || "{}");
+      
+      let inspirationImageUrl = null;
+      
+      // Upload inspiration image if provided
+      if (inspirationImage) {
+        const fileExt = inspirationImage.name.split(".").pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("inspiration-images")
+          .upload(fileName, inspirationImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("inspiration-images")
+          .getPublicUrl(fileName);
+        
+        inspirationImageUrl = publicUrl;
+      }
 
       const { data, error } = await supabase.functions.invoke("generate-content", {
         body: {
           needFor: prompt,
           brandProfile,
+          inspirationImageUrl,
         },
       });
 
@@ -55,15 +127,18 @@ const Create = () => {
       if (data?.imageUrl) {
         setGeneratedImage(data.imageUrl);
         
-        // Save to gallery
-        const gallery = JSON.parse(localStorage.getItem("markmate_gallery") || "[]");
-        gallery.unshift({
-          id: Date.now().toString(),
-          prompt,
-          imageUrl: data.imageUrl,
-          timestamp: Date.now(),
-        });
-        localStorage.setItem("markmate_gallery", JSON.stringify(gallery.slice(0, 50)));
+        // Save to database
+        const { error: insertError } = await supabase
+          .from("generated_content")
+          .insert({
+            user_id: user.id,
+            prompt,
+            image_url: data.imageUrl,
+          });
+
+        if (insertError) {
+          console.error("Failed to save to gallery:", insertError);
+        }
 
         toast({
           title: "Content generated successfully!",
@@ -101,9 +176,11 @@ const Create = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mb-2">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold">Create Content</h1>
+          <h1 className="text-4xl font-bold">
+            Welcome back{profile?.username ? `, ${profile.username}` : ""}!
+          </h1>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Simply describe what you need, and MarkMate will create professional brand content for you
+            Ready to start a new campaign? Describe your marketing content idea below
           </p>
         </div>
 
@@ -131,6 +208,47 @@ const Create = () => {
               className="min-h-[120px] text-base resize-none"
               disabled={loading}
             />
+
+            {/* Inspiration Image Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="inspiration">Inspiration Image (Optional)</Label>
+              {inspirationPreview ? (
+                <div className="relative inline-block">
+                  <img
+                    src={inspirationPreview}
+                    alt="Inspiration"
+                    className="w-32 h-32 object-cover rounded-lg border-2 border-border"
+                  />
+                  <button
+                    onClick={removeInspirationImage}
+                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Input
+                    id="inspiration"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleInspirationUpload}
+                    className="hidden"
+                    disabled={loading}
+                  />
+                  <label
+                    htmlFor="inspiration"
+                    className="flex items-center justify-center gap-2 px-4 py-8 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors"
+                  >
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Upload an image for inspiration
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
+
             <Button
               onClick={handleGenerate}
               disabled={loading || !hasBrandProfile}

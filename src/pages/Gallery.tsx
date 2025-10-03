@@ -1,24 +1,57 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface GeneratedContent {
   id: string;
   prompt: string;
-  imageUrl: string;
-  timestamp: number;
+  image_url: string;
+  created_at: string;
 }
 
 const Gallery = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [gallery, setGallery] = useState<GeneratedContent[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem("markmate_gallery");
-    if (saved) {
-      setGallery(JSON.parse(saved));
-    }
+    checkAuthAndLoad();
   }, []);
+
+  const checkAuthAndLoad = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate("/auth");
+      return;
+    }
+    loadGallery();
+  };
+
+  const loadGallery = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("generated_content")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setGallery(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Failed to load gallery",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDownload = (imageUrl: string, prompt: string) => {
     const link = document.createElement("a");
@@ -29,11 +62,35 @@ const Gallery = () => {
     document.body.removeChild(link);
   };
 
-  const handleDelete = (id: string) => {
-    const updated = gallery.filter((item) => item.id !== id);
-    setGallery(updated);
-    localStorage.setItem("markmate_gallery", JSON.stringify(updated));
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("generated_content")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setGallery(gallery.filter((item) => item.id !== id));
+      toast({
+        title: "Content deleted",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to delete",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (gallery.length === 0) {
     return (
@@ -66,7 +123,7 @@ const Gallery = () => {
             <Card key={item.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
               <div className="aspect-square bg-secondary">
                 <img
-                  src={item.imageUrl}
+                  src={item.image_url}
                   alt={item.prompt}
                   className="w-full h-full object-cover"
                 />
@@ -80,7 +137,7 @@ const Gallery = () => {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => handleDownload(item.imageUrl, item.prompt)}
+                    onClick={() => handleDownload(item.image_url, item.prompt)}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download

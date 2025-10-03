@@ -17,6 +17,7 @@ interface GenerateContentRequest {
     industry?: string;
     description?: string;
   };
+  inspirationImageUrl?: string;
 }
 
 Deno.serve(async (req) => {
@@ -25,7 +26,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { needFor, brandProfile }: GenerateContentRequest = await req.json();
+    const { needFor, brandProfile, inspirationImageUrl }: GenerateContentRequest = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -98,10 +99,12 @@ ${creativeGoal === 'product_ad' ? `
 ## User Request
 "${needFor}"
 
+${inspirationImageUrl ? `\n## Inspiration Image\nThe user has provided an inspiration image. Reference its style, composition, color scheme, and overall aesthetic when creating the prompt. The inspiration image can be viewed at: ${inspirationImageUrl}` : ''}
+
 ## Output Format
 Generate a detailed prompt following this structure:
 
-1. **Aesthetic & Style**: Describe the overall visual style
+1. **Aesthetic & Style**: Describe the overall visual style${inspirationImageUrl ? ' (incorporating elements from the inspiration image)' : ''}
 2. **Hero Focus**: What should dominate the composition (70% of space)
 3. **Background/Atmosphere**: Supporting visual elements
 4. **Brand Integration**: Logo placement and brand colors
@@ -144,22 +147,32 @@ Create a comprehensive, detailed prompt that the image generation AI can follow 
     console.log('Step 3: Generating image with Gemini 2.5 Flash Image...');
     
     // Step 3: Image Generation with Nano Banana
+    const imageRequestBody: any = {
+      model: 'google/gemini-2.5-flash-image-preview',
+      messages: [
+        {
+          role: 'user',
+          content: masterPrompt
+        }
+      ],
+      modalities: ['image', 'text']
+    };
+
+    // If inspiration image is provided, include it in the image generation request
+    if (inspirationImageUrl) {
+      imageRequestBody.messages[0].content = [
+        { type: 'text', text: masterPrompt },
+        { type: 'image_url', image_url: { url: inspirationImageUrl } }
+      ];
+    }
+
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: masterPrompt
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
+      body: JSON.stringify(imageRequestBody),
     });
 
     if (!imageResponse.ok) {
