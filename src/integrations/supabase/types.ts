@@ -76,6 +76,42 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          credits: number
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price_cents: number
+          stripe_price_id: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Insert: {
+          created_at?: string | null
+          credits: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price_cents: number
+          stripe_price_id?: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Update: {
+          created_at?: string | null
+          credits?: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price_cents?: number
+          stripe_price_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           created_at: string | null
@@ -165,15 +201,96 @@ export type Database = {
           },
         ]
       }
+      user_credits: {
+        Row: {
+          created_at: string | null
+          credits: number
+          id: string
+          last_monthly_grant_at: string | null
+          mcoins: number
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits?: number
+          id?: string
+          last_monthly_grant_at?: string | null
+          mcoins?: number
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          credits?: number
+          id?: string
+          last_monthly_grant_at?: string | null
+          mcoins?: number
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_transactions: {
+        Row: {
+          balance_after: number
+          created_at: string | null
+          credits_change: number
+          description: string | null
+          id: string
+          mcoins_change: number | null
+          metadata: Json | null
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string | null
+          credits_change: number
+          description?: string | null
+          id?: string
+          mcoins_change?: number | null
+          metadata?: Json | null
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string | null
+          credits_change?: number
+          description?: string | null
+          id?: string
+          mcoins_change?: number | null
+          metadata?: Json | null
+          transaction_type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_mcoins: {
+        Args: { _amount: number; _description?: string; _user_id: string }
+        Returns: undefined
+      }
+      convert_mcoins_to_credits: {
+        Args: { _mcoins_to_convert: number; _user_id: string }
+        Returns: boolean
+      }
+      deduct_credits: {
+        Args: { _amount: number; _description?: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      subscription_tier: "free" | "brand_lite" | "starter" | "pro"
+      transaction_type: "purchase" | "reward" | "usage" | "monthly_grant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -300,6 +417,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_tier: ["free", "brand_lite", "starter", "pro"],
+      transaction_type: ["purchase", "reward", "usage", "monthly_grant"],
+    },
   },
 } as const
