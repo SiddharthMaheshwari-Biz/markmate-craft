@@ -1,9 +1,17 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Sparkles, Image, Settings as SettingsIcon, History, Menu, X, LogOut, User } from "lucide-react";
+import { Sparkles, Image, Settings as SettingsIcon, History, Menu, X, LogOut, User, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Layout = () => {
   const location = useLocation();
@@ -38,11 +46,42 @@ const Layout = () => {
     { icon: History, label: "Gallery", path: "/gallery" },
     { icon: Image, label: "Templates", path: "/templates" },
     { icon: SettingsIcon, label: "Brand", path: "/brand" },
-    { icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (
     <div className="min-h-screen flex flex-col pb-20 md:pb-0">
+      {/* Settings Button - Always visible at top right */}
+      <div className="fixed top-4 right-4 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-card">
+              <SettingsIcon className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Settings</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/pricing")}>
+              <DollarSign className="w-4 h-4 mr-2" />
+              Pricing
+            </DropdownMenuItem>
+            {user && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
@@ -118,19 +157,6 @@ const Layout = () => {
           </div>
         </div>
 
-        {user && (
-          <div className={`p-4 border-t border-border ${!sidebarOpen && "flex justify-center"}`}>
-            <Button
-              variant="ghost"
-              onClick={handleSignOut}
-              className={`${sidebarOpen ? "w-full justify-start" : ""}`}
-              title={!sidebarOpen ? "Sign Out" : undefined}
-            >
-              <LogOut className="w-5 h-5" />
-              {sidebarOpen && <span className="ml-2">Sign Out</span>}
-            </Button>
-          </div>
-        )}
       </nav>
 
       {/* Desktop Main Content Offset */}
