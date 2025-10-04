@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, AlertCircle, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { CreditsDisplay } from "@/components/CreditsDisplay";
 
 const Create = () => {
   const { toast } = useToast();
@@ -20,9 +21,12 @@ const Create = () => {
   const [inspirationPreview, setInspirationPreview] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [userCredits, setUserCredits] = useState<number>(0);
+  const [campaignBlueprint, setCampaignBlueprint] = useState<any>(null);
 
   useEffect(() => {
     checkAuth();
+    fetchUserCredits();
     const saved = localStorage.getItem("markmate_brand");
     setHasBrandProfile(!!saved && JSON.parse(saved).name);
   }, []);
@@ -42,6 +46,21 @@ const Create = () => {
       .single();
 
     setProfile(profileData);
+  };
+
+  const fetchUserCredits = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data } = await supabase
+      .from('user_credits')
+      .select('credits')
+      .eq('user_id', session.user.id)
+      .single();
+
+    if (data) {
+      setUserCredits(data.credits);
+    }
   };
 
   const handleInspirationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,8 +108,18 @@ const Create = () => {
       return;
     }
 
+    if (userCredits < 1) {
+      toast({
+        title: "Insufficient credits",
+        description: "You need 1 credit to generate a campaign. Purchase more credits to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     setGeneratedImage(null);
+    setCampaignBlueprint(null);
 
     try {
       const brandProfile = JSON.parse(localStorage.getItem("markmate_brand") || "{}");
@@ -114,18 +143,34 @@ const Create = () => {
         inspirationImageUrl = publicUrl;
       }
 
-      const { data, error } = await supabase.functions.invoke("generate-content", {
+      // Call the new orchestrator function with Agency X multi-agent system
+      const { data, error } = await supabase.functions.invoke("orchestrate-campaign", {
         body: {
-          needFor: prompt,
-          brandProfile,
-          inspirationImageUrl,
+          raw_user_input: prompt,
+          user_settings: {
+            ...brandProfile,
+            enable_contact_strip: profile?.subscription_tier !== 'free'
+          },
+          user_id: user.id,
+          inspiration_image_url: inspirationImageUrl,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('Insufficient credits')) {
+          toast({
+            title: "Insufficient credits",
+            description: "You need 1 credit to generate a campaign.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
 
-      if (data?.imageUrl) {
-        setGeneratedImage(data.imageUrl);
+      if (data?.generatedImageUrl) {
+        setGeneratedImage(data.generatedImageUrl);
+        setCampaignBlueprint(data);
         
         // Save to database
         const { error: insertError } = await supabase
@@ -133,16 +178,19 @@ const Create = () => {
           .insert({
             user_id: user.id,
             prompt,
-            image_url: data.imageUrl,
+            image_url: data.generatedImageUrl,
           });
 
         if (insertError) {
           console.error("Failed to save to gallery:", insertError);
         }
 
+        // Refresh credits
+        fetchUserCredits();
+
         toast({
-          title: "Content generated successfully!",
-          description: "Your brand content is ready",
+          title: "Campaign generated successfully!",
+          description: "Your marketing campaign is ready",
         });
       }
     } catch (error: any) {
@@ -171,6 +219,8 @@ const Create = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/30 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Credits Display */}
+        <CreditsDisplay />
         {/* Header */}
         <div className="text-center space-y-3 pt-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mb-2">

@@ -110,9 +110,20 @@ const Templates = () => {
 
       if (insertError) throw insertError;
 
+      // Award 0.5 mCoins for successful template creation
+      const { error: rewardError } = await supabase.rpc('add_mcoins', {
+        _user_id: user.id,
+        _amount: 0.5,
+        _description: 'Template upload reward'
+      });
+
+      if (rewardError) {
+        console.error('Failed to award mCoins:', rewardError);
+      }
+
       toast({
-        title: "Template uploaded!",
-        description: "Your template is now available to everyone",
+        title: "Template uploaded! 🎉",
+        description: "You earned 0.5 mCoins! Your template is now live.",
       });
 
       setUploadDialogOpen(false);

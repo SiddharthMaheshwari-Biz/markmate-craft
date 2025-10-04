@@ -1,5 +1,5 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
-import { Sparkles, Image, Settings, History, Menu, X, LogOut } from "lucide-react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { Sparkles, Image, Settings as SettingsIcon, History, Menu, X, LogOut, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -36,7 +37,8 @@ const Layout = () => {
     { icon: Sparkles, label: "Create", path: "/" },
     { icon: History, label: "Gallery", path: "/gallery" },
     { icon: Image, label: "Templates", path: "/templates" },
-    { icon: Settings, label: "Brand", path: "/brand" },
+    { icon: SettingsIcon, label: "Brand", path: "/brand" },
+    { icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (

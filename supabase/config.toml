@@ -1,1 +1,16 @@
 project_id = "jebehylnsifvrtiiumhk"
+
+[functions.agent-intent-analyst]
+verify_jwt = false
+
+[functions.agent-strategy-deconstruction]
+verify_jwt = false
+
+[functions.agent-content-planners]
+verify_jwt = false
+
+[functions.agent-master-synthesis]
+verify_jwt = false
+
+[functions.orchestrate-campaign]
+verify_jwt = false
