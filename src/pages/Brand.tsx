@@ -16,6 +16,10 @@ interface BrandProfile {
   tagline: string;
   industry: string;
   description: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
 }
 
 const Brand = () => {
@@ -29,6 +33,10 @@ const Brand = () => {
     tagline: "",
     industry: "",
     description: "",
+    phone: "",
+    email: "",
+    website: "",
+    address: "",
   });
 
   useEffect(() => {
@@ -173,6 +181,73 @@ const Brand = () => {
                 placeholder="Describe your brand in detail"
                 rows={4}
               />
+            </div>
+
+            {/* Contact Information - Premium Feature */}
+            <div className="pt-4 border-t border-border">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                Contact Information
+                <span className="text-xs bg-gradient-to-r from-primary to-accent text-white px-2 py-1 rounded-full">
+                  Premium
+                </span>
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Add your contact details to generate content with overlays (Available for paid tiers only)
+              </p>
+              
+              <div className="space-y-4 opacity-50">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    value={profile.phone || ""}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    disabled
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profile.email || ""}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    placeholder="contact@yourbrand.com"
+                    disabled
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={profile.website || ""}
+                    onChange={(e) => setProfile({ ...profile, website: e.target.value })}
+                    placeholder="www.yourbrand.com"
+                    disabled
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Textarea
+                    id="address"
+                    value={profile.address || ""}
+                    onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                    placeholder="Your business address"
+                    rows={2}
+                    disabled
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <p className="text-sm text-center">
+                  Upgrade to Brand Lite, Starter, or Pro to enable contact information overlays on your generated content.
+                </p>
+              </div>
             </div>
           </div>
 

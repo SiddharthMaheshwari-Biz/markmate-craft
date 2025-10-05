@@ -1,0 +1,17 @@
+{
+  "name": "MarkMate - AI Brand Content Creator",
+  "short_name": "MarkMate",
+  "description": "Create professional brand marketing content with AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

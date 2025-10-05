@@ -112,7 +112,7 @@ const Pricing = () => {
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold">
-                      ${(plan.price_cents / 100).toFixed(0)}
+                      ₹{(plan.price_cents / 100).toFixed(0)}
                     </span>
                     {!isFree && <span className="text-muted-foreground">/pack</span>}
                   </div>
