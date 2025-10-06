@@ -23,7 +23,7 @@ interface BrandProfile {
 }
 
 interface BrandOnboardingProps {
-  onComplete: (profile: BrandProfile) => void;
+  onComplete: () => void;
 }
 
 export const BrandOnboarding = ({ onComplete }: BrandOnboardingProps) => {
@@ -73,18 +73,19 @@ export const BrandOnboarding = ({ onComplete }: BrandOnboardingProps) => {
 
   const handleComplete = () => {
     localStorage.setItem("markmate_brand", JSON.stringify(profile));
+    localStorage.setItem("markmate_brand_onboarding_complete", "true");
     toast({
       title: "Welcome to MarkMate! 🎉",
       description: "Your brand profile is set up. Let's create amazing content!",
     });
-    onComplete(profile);
+    onComplete();
   };
 
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-6">
         {/* Progress Bar */}
         <div className="space-y-2">
@@ -102,7 +103,7 @@ export const BrandOnboarding = ({ onComplete }: BrandOnboardingProps) => {
 
         {/* Step 1: Basic Info */}
         {step === 1 && (
-          <Card className="p-8 shadow-xl animate-in fade-in-50 duration-300">
+          <Card className="border-0 shadow-sm p-8 animate-in fade-in-50 duration-300">
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mb-2">
@@ -152,7 +153,7 @@ export const BrandOnboarding = ({ onComplete }: BrandOnboardingProps) => {
 
         {/* Step 2: Visual Identity */}
         {step === 2 && (
-          <Card className="p-8 shadow-xl animate-in fade-in-50 duration-300">
+          <Card className="border-0 shadow-sm p-8 animate-in fade-in-50 duration-300">
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-3xl font-bold">Visual Identity</h2>
@@ -224,7 +225,7 @@ export const BrandOnboarding = ({ onComplete }: BrandOnboardingProps) => {
 
         {/* Step 3: Brand Story */}
         {step === 3 && (
-          <Card className="p-8 shadow-xl animate-in fade-in-50 duration-300">
+          <Card className="border-0 shadow-sm p-8 animate-in fade-in-50 duration-300">
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mb-2">

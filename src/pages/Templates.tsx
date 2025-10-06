@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Search, Image as ImageIcon, Loader2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Template {
   id: string;
@@ -150,14 +151,27 @@ const Templates = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background p-4 md:p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <Skeleton className="h-20 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="border-0 shadow-sm">
+                <Skeleton className="aspect-square w-full" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/30 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-2">
@@ -259,7 +273,7 @@ const Templates = () => {
             {filteredTemplates.map((template) => (
               <Card
                 key={template.id}
-                className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer group"
+                className="border-0 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
               >
                 <div className="aspect-square bg-secondary relative">
                   <img

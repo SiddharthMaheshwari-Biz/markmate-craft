@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface GeneratedContent {
   id: string;
@@ -137,8 +138,21 @@ const Gallery = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background p-4 md:p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <Skeleton className="h-20 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="border-0 shadow-sm">
+                <Skeleton className="aspect-square w-full" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -160,7 +174,7 @@ const Gallery = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/30 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Gallery</h1>
@@ -169,7 +183,7 @@ const Gallery = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {generatedContent.map((content) => (
-            <Card key={content.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+            <Card key={content.id} className="border-0 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
               <div className="aspect-square bg-secondary">
                 <img src={content.image_url} alt={content.prompt} className="w-full h-full object-cover" />
               </div>

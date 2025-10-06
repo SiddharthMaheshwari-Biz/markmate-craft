@@ -217,20 +217,17 @@ const Create = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/30 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Credits Display */}
         <CreditsDisplay />
-        {/* Header */}
-        <div className="text-center space-y-3 pt-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mb-2">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold">
-            Welcome back{profile?.username ? `, ${profile.username}` : ""}!
+        {/* Header - Claude-inspired */}
+        <div className="text-center space-y-4 pt-4">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+            Welcome back{profile?.username ? `, ${profile.username}` : ""}
           </h1>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Ready to start a new campaign? Describe your marketing content idea below
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Create stunning marketing content with AI. Describe your idea and watch it come to life.
           </p>
         </div>
 
@@ -249,7 +246,7 @@ const Create = () => {
         )}
 
         {/* Input Section */}
-        <Card className="p-6 shadow-md">
+        <Card className="border-0 shadow-sm p-6 md:p-8">
           <div className="space-y-4">
             <Textarea
               value={prompt}
@@ -322,7 +319,7 @@ const Create = () => {
 
         {/* Generated Image */}
         {generatedImage && (
-          <Card className="p-6 shadow-lg animate-in fade-in-50 duration-500">
+          <Card className="border-0 shadow-sm p-6 md:p-8 animate-in fade-in-50 duration-500">
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">Generated Content</h3>
               <div className="aspect-square bg-secondary rounded-lg overflow-hidden">
@@ -340,7 +337,7 @@ const Create = () => {
         )}
 
         {/* Example Prompts */}
-        <Card className="p-6 bg-secondary/50">
+        <Card className="border-0 shadow-sm p-6 bg-muted/30">
           <h3 className="font-semibold mb-3">Example Prompts</h3>
           <div className="space-y-2">
             {[

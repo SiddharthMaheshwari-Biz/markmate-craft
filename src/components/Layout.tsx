@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState<any>(null);
 
@@ -49,17 +52,25 @@ const Layout = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen flex flex-col pb-20 md:pb-0 bg-background">
       {/* Settings Button - Always visible at top right */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="rounded-full shadow-lg bg-card border-0"
+        >
+          {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-card">
-              <SettingsIcon className="w-5 h-5" />
+            <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-card border-0">
+              <User className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Settings</DropdownMenuLabel>
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/profile")}>
               <User className="w-4 h-4 mr-2" />
@@ -86,22 +97,22 @@ const Layout = () => {
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border md:hidden z-50">
-        <div className="flex items-center justify-around h-16">
+      {/* Mobile Bottom Navigation - Claude-inspired */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border md:hidden z-50 shadow-lg">
+        <div className="flex items-center justify-around h-16 px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center gap-1 px-6 py-2 rounded-xl transition-all ${
+                className={`flex flex-col items-center justify-center gap-1.5 px-5 py-2 rounded-xl transition-all ${
                   isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
-                <item.icon className={`w-5 h-5 ${isActive ? "fill-primary/20" : ""}`} />
+                <item.icon className={`w-5 h-5 ${isActive ? "stroke-2" : ""}`} />
                 <span className="text-xs font-medium">{item.label}</span>
               </Link>
             );
@@ -109,33 +120,31 @@ const Layout = () => {
         </div>
       </nav>
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar - Claude-inspired */}
       <nav
-        className={`hidden md:flex fixed left-0 top-0 bottom-0 bg-card border-r border-border flex-col z-50 transition-all duration-300 ${
-          sidebarOpen ? "w-64" : "w-16"
+        className={`hidden md:flex fixed left-0 top-0 bottom-0 bg-card/95 backdrop-blur-xl border-r border-border flex-col z-40 transition-all duration-300 ${
+          sidebarOpen ? "w-64" : "w-20"
         }`}
       >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-8">
+        <div className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-10">
             {sidebarOpen && (
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  MarkMate
-                </h1>
-                <p className="text-xs text-muted-foreground mt-1">AI Content Creator</p>
+                <h1 className="text-2xl font-bold">MarkMate</h1>
+                <p className="text-xs text-muted-foreground mt-1">AI Marketing Studio</p>
               </div>
             )}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="ml-auto"
+              className={sidebarOpen ? "ml-auto" : ""}
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
 
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-1.5">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
@@ -144,13 +153,13 @@ const Layout = () => {
                   to={item.path}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-lg"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                   title={!sidebarOpen ? item.label : undefined}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
-                  {sidebarOpen && <span className="font-medium">{item.label}</span>}
+                  {sidebarOpen && <span className="font-medium text-sm">{item.label}</span>}
                 </Link>
               );
             })}
